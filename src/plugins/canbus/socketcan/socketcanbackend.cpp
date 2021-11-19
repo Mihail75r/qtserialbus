@@ -152,8 +152,8 @@ bool SocketCanBackend::applyConfigurationParameter(int key, const QVariant &valu
     }
     case QCanBusDevice::ErrorFilterKey:
     {
-        const int errorMask = value.value<QCanBusFrame::FrameErrors>();
-        if (setsockopt(canSocket, SOL_CAN_RAW, CAN_RAW_ERR_FILTER,
+        const int errorMask = value.value<QCanBusFrame::FrameErrors>();     // маска
+        if (setsockopt(canSocket, SOL_CAN_RAW, CAN_RAW_ERR_FILTER,          // настройка послания ошибок
                        &errorMask, sizeof(errorMask)) < 0) {
             setError(qt_error_string(errno),
                      QCanBusDevice::CanBusError::ConfigurationError);
@@ -201,7 +201,7 @@ bool SocketCanBackend::applyConfigurationParameter(int key, const QVariant &valu
             case QCanBusFrame::DataFrame:
                 filter.can_mask |= CAN_RTR_FLAG;
                 break;
-            case QCanBusFrame::ErrorFrame:
+            case QCanBusFrame::ErrorFrame:                          // ErrorFrame
                 filter.can_mask |= CAN_ERR_FLAG;
                 filter.can_id |= CAN_ERR_FLAG;
                 break;
@@ -224,7 +224,7 @@ bool SocketCanBackend::applyConfigurationParameter(int key, const QVariant &valu
 
             filters[i] = filter;
         }
-        if (setsockopt(canSocket, SOL_CAN_RAW, CAN_RAW_FILTER,
+        if (setsockopt(canSocket, SOL_CAN_RAW, CAN_RAW_FILTER,                              // фильтр
                        filters.constData(), sizeof(filters[0]) * filters.size()) < 0) {
             setError(qt_error_string(errno),
                      QCanBusDevice::CanBusError::ConfigurationError);
@@ -266,7 +266,7 @@ bool SocketCanBackend::connectSocket()
     }
 
     qstrncpy(interface.ifr_name, canSocketName.toLatin1().constData(), sizeof(interface.ifr_name));
-    if (ioctl(canSocket, SIOCGIFINDEX, &interface) < 0) {
+    if (ioctl(canSocket, SIOCGIFINDEX, &interface) < 0) {       // Чтобы определить индекс интерфейса, соответствующий ioctl ()
         setError(qt_error_string(errno),
                  QCanBusDevice::CanBusError::ConnectionError);
         return false;
@@ -593,7 +593,7 @@ void SocketCanBackend::readSocket()
         }
 
         struct timeval timeStamp;
-        if (ioctl(canSocket, SIOCGSTAMP, &timeStamp) < 0) {
+        if (ioctl(canSocket, SIOCGSTAMP, &timeStamp) < 0) {     // Точную временную метку можно получить с помощью вызова ioctl (2) после чтения. сообщение из розетки.
             setError(qt_error_string(errno),
                      QCanBusDevice::CanBusError::ReadError);
             timeStamp.tv_sec = 0;
